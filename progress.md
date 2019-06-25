@@ -50,7 +50,7 @@
 [ ] [ ] 3.14 Ensure a log metric filter and alarm exist for VPC changes (Scored)
 
 4 Networking
-[ ] [ ] 4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
+[*] [ ] 4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
 [ ] [ ] 4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (Scored)
 [ ] [ ] 4.3 Ensure the default security group of every VPC restricts all traffic (Scored)
 [ ] [ ] 4.4 Ensure routing tables for VPC peering are "least access" (Not Scored)
