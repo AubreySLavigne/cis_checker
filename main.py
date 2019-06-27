@@ -77,6 +77,32 @@ def main() -> None:
                         'reason':    "Security Group includes port 22 and has IP Range '0.0.0.0/0'"
                     })
 
+    # 4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (Scored)
+    client = session.client('ec2')
+    security_groups = client.describe_security_groups().get('SecurityGroups')
+    for group in security_groups:
+        group_id = group.get('GroupId')
+        ingress_rules = group.get('IpPermissions')
+        for rule in ingress_rules:
+
+            from_port = rule.get('FromPort')
+            if from_port is None:
+                continue
+            to_port = rule.get('FromPort')
+            if to_port is None:
+                continue
+
+            if not port_in_range(3389, from_port, to_port):
+                continue
+
+            for ip_range in rule.get('IpRanges'):
+                if ip_range.get('CidrIp') == '0.0.0.0/0':
+                    res.append({
+                        'benchmark': '4.2',
+                        'key_id':    group_id,
+                        'reason':    "Security Group includes port 3389 and has IP Range '0.0.0.0/0'"
+                    })
+
     # Print Results
     print(json.dumps(res))
 

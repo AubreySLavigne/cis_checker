@@ -30,7 +30,7 @@
 [ ] [ ] 2.5 Ensure AWS Config is enabled in all regions (Scored)
 [ ] [ ] 2.6 Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket (Scored)
 [ ] [ ] 2.7 Ensure CloudTrail logs are encrypted at rest using KMS CMKs (Scored)
-[*] [ ] 2.8 Ensure rotation for customer created CMKs is enabled (Scored)
+[x] [ ] 2.8 Ensure rotation for customer created CMKs is enabled (Scored)
 [ ] [ ] 2.9 Ensure VPC flow logging is enabled in all VPCs (Scored)
 
 3 Monitoring
@@ -50,8 +50,8 @@
 [ ] [ ] 3.14 Ensure a log metric filter and alarm exist for VPC changes (Scored)
 
 4 Networking
-[*] [ ] 4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
-[ ] [ ] 4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (Scored)
+[x] [ ] 4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
+[x] [ ] 4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (Scored)
 [ ] [ ] 4.3 Ensure the default security group of every VPC restricts all traffic (Scored)
 [ ] [ ] 4.4 Ensure routing tables for VPC peering are "least access" (Not Scored)
 
