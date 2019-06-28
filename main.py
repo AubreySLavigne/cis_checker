@@ -25,11 +25,29 @@ def port_in_range(target: int, lower_bound: int, upper_bound: int) -> bool:
     return False
 
 
+class Violations(object):
+    """
+    Manages Results from the Checks
+    """
+    def __init__(self):
+        self.results = []
+
+    def add(self, benchmark: str, reason: str, info: dict) -> None:
+        """
+        Adds the results from the benchmark
+        """
+        self.results.append({
+            'benchmark': benchmark,
+            'reason':    reason,
+            'info':      info
+        })
+
+
 def main() -> None:
 
     session = boto3.session.Session(profile_name='default')
 
-    res = []
+    res = Violations()
 
     # 2.8 Ensure rotation for customer created CMKs is enabled (Scored)
     client = boto3.client('kms')
@@ -39,16 +57,12 @@ def main() -> None:
             key_id = key.get('KeyId')
             status = client.get_key_rotation_status(KeyId=key_id)
             if not status.get('KeyRotationEnabled'):
-                res.append({
-                    'benchmark': '2.8',
-                    'key_id':    key_id,
-                    'reason':    'KeyRotationEnabled is not set'
+                res.add('2.8', 'KeyRotationEnabled is not set', {
+                    'key_id':    key_id
                 })
         except botocore.exceptions.ClientError as err:
-            res.append({
-                'benchmark': '2.8',
-                'key_id':    key_id,
-                'reason':    str(err)
+            res.add('2.8', str(err), {
+                'key_id':    key_id
             })
 
     # 4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
@@ -71,10 +85,8 @@ def main() -> None:
 
             for ip_range in rule.get('IpRanges'):
                 if ip_range.get('CidrIp') == '0.0.0.0/0':
-                    res.append({
-                        'benchmark': '4.1',
-                        'key_id':    group_id,
-                        'reason':    "Security Group includes port 22 and has IP Range '0.0.0.0/0'"
+                    res.add('4.1', "Security Group includes port 22 and has IP Range '0.0.0.0/0'", {
+                        'group_id':    group_id
                     })
 
     # 4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (Scored)
@@ -97,14 +109,13 @@ def main() -> None:
 
             for ip_range in rule.get('IpRanges'):
                 if ip_range.get('CidrIp') == '0.0.0.0/0':
-                    res.append({
-                        'benchmark': '4.2',
-                        'key_id':    group_id,
-                        'reason':    "Security Group includes port 3389 and has IP Range '0.0.0.0/0'"
-                    })
+                    res.add('4.2',
+                            "Security Group includes port 3389 and has IP Range '0.0.0.0/0'", {
+                                'group_id':    group_id
+                            })
 
     # Print Results
-    print(json.dumps(res))
+    print(json.dumps(res.results))
 
 
 if __name__ == '__main__':
