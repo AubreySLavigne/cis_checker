@@ -43,79 +43,100 @@ class Violations(object):
         })
 
 
-def main() -> None:
+class CISChecker(object):
+    """
+    Object with API to consolidate CIS Benchmarks
+    """
+    def __init__(self):
+        self.session = boto3.session.Session(profile_name='default')
+        self.res = Violations()
 
-    session = boto3.session.Session(profile_name='default')
-
-    res = Violations()
-
-    # 2.8 Ensure rotation for customer created CMKs is enabled (Scored)
-    client = boto3.client('kms')
-    keys = client.list_keys().get('Keys')
-    for key in keys:
-        try:
-            key_id = key.get('KeyId')
-            status = client.get_key_rotation_status(KeyId=key_id)
-            if not status.get('KeyRotationEnabled'):
-                res.add('2.8', 'KeyRotationEnabled is not set', {
+    def check_2_8(self) -> None:
+        """
+        2.8 Ensure rotation for customer created CMKs is enabled (Scored)
+        """
+        client = self.session.client('kms')
+        keys = client.list_keys().get('Keys')
+        for key in keys:
+            try:
+                key_id = key.get('KeyId')
+                status = client.get_key_rotation_status(KeyId=key_id)
+                if not status.get('KeyRotationEnabled'):
+                    self.res.add('2.8', 'KeyRotationEnabled is not set', {
+                        'key_id':    key_id
+                    })
+            except botocore.exceptions.ClientError as err:
+                self.res.add('2.8', str(err), {
                     'key_id':    key_id
                 })
-        except botocore.exceptions.ClientError as err:
-            res.add('2.8', str(err), {
-                'key_id':    key_id
-            })
 
-    # 4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
-    client = session.client('ec2')
-    security_groups = client.describe_security_groups().get('SecurityGroups')
-    for group in security_groups:
-        group_id = group.get('GroupId')
-        ingress_rules = group.get('IpPermissions')
-        for rule in ingress_rules:
+    def check_4_1(self) -> None:
+        """
+        4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
+        """
+        client = self.session.client('ec2')
+        security_groups = client.describe_security_groups().get('SecurityGroups')
+        for group in security_groups:
+            group_id = group.get('GroupId')
+            ingress_rules = group.get('IpPermissions')
+            for rule in ingress_rules:
 
-            from_port = rule.get('FromPort')
-            if from_port is None:
-                continue
-            to_port = rule.get('FromPort')
-            if to_port is None:
-                continue
+                from_port = rule.get('FromPort')
+                if from_port is None:
+                    continue
+                to_port = rule.get('FromPort')
+                if to_port is None:
+                    continue
 
-            if not port_in_range(22, from_port, to_port):
-                continue
+                if not port_in_range(22, from_port, to_port):
+                    continue
 
-            for ip_range in rule.get('IpRanges'):
-                if ip_range.get('CidrIp') == '0.0.0.0/0':
-                    res.add('4.1', "Security Group includes port 22 and has IP Range '0.0.0.0/0'", {
-                        'group_id':    group_id
-                    })
+                for ip_range in rule.get('IpRanges'):
+                    if ip_range.get('CidrIp') == '0.0.0.0/0':
+                        self.res.add('4.1',
+                                     "Security Group includes port 22 and has IP Range '0.0.0.0/0'", {
+                                         'group_id':    group_id
+                                     })
 
-    # 4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (Scored)
-    client = session.client('ec2')
-    security_groups = client.describe_security_groups().get('SecurityGroups')
-    for group in security_groups:
-        group_id = group.get('GroupId')
-        ingress_rules = group.get('IpPermissions')
-        for rule in ingress_rules:
+    def check_4_2(self) -> None:
+        """
+        4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (Scored)
+        """
+        client = self.session.client('ec2')
+        security_groups = client.describe_security_groups().get('SecurityGroups')
+        for group in security_groups:
+            group_id = group.get('GroupId')
+            ingress_rules = group.get('IpPermissions')
+            for rule in ingress_rules:
 
-            from_port = rule.get('FromPort')
-            if from_port is None:
-                continue
-            to_port = rule.get('FromPort')
-            if to_port is None:
-                continue
+                from_port = rule.get('FromPort')
+                if from_port is None:
+                    continue
+                to_port = rule.get('FromPort')
+                if to_port is None:
+                    continue
 
-            if not port_in_range(3389, from_port, to_port):
-                continue
+                if not port_in_range(3389, from_port, to_port):
+                    continue
 
-            for ip_range in rule.get('IpRanges'):
-                if ip_range.get('CidrIp') == '0.0.0.0/0':
-                    res.add('4.2',
-                            "Security Group includes port 3389 and has IP Range '0.0.0.0/0'", {
-                                'group_id':    group_id
-                            })
+                for ip_range in rule.get('IpRanges'):
+                    if ip_range.get('CidrIp') == '0.0.0.0/0':
+                        self.res.add('4.2',
+                                     "Security Group includes port 3389 and has IP Range '0.0.0.0/0'", {
+                                         'group_id':    group_id
+                                     })
+
+
+def main() -> None:
+
+    checker = CISChecker()
+
+    checker.check_2_8()
+    checker.check_4_1()
+    checker.check_4_2()
 
     # Print Results
-    print(json.dumps(res.results))
+    print(json.dumps(checker.res.results))
 
 
 if __name__ == '__main__':
