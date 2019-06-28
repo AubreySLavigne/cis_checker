@@ -30,16 +30,18 @@ class Violations(object):
     Manages Results from the Checks
     """
     def __init__(self):
-        self.results = []
+        self.results = {}
 
     def add(self, benchmark: str, reason: str, info: dict) -> None:
         """
         Adds the results from the benchmark
         """
-        self.results.append({
-            'benchmark': benchmark,
-            'reason':    reason,
-            'info':      info
+        if benchmark not in self.results:
+            self.results[benchmark] = []
+
+        self.results[benchmark].append({
+            'reason': reason,
+            'info':   info
         })
 
 
