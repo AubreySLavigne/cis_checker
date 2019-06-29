@@ -72,12 +72,18 @@ class CISChecker(object):
                     'key_id':    key_id
                 })
 
-    def check_4_1(self) -> None:
+    def check_open_port(self, benchmark: str, target_port: int) -> None:
         """
-        4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
+        Verifies that not security groups allow ingress from 0.0.0.0/0
+        (anywhere) to the port target_port.
+
+        Any violations of this rule are added to the checker's list of Violations
         """
         client = self.session.client('ec2')
         security_groups = client.describe_security_groups().get('SecurityGroups')
+
+        failure_message = f"Security Group includes port {target_port} and has IP Range '0.0.0.0/0'"
+
         for group in security_groups:
             group_id = group.get('GroupId')
             ingress_rules = group.get('IpPermissions')
@@ -90,43 +96,26 @@ class CISChecker(object):
                 if to_port is None:
                     continue
 
-                if not port_in_range(22, from_port, to_port):
+                if not port_in_range(target_port, from_port, to_port):
                     continue
 
                 for ip_range in rule.get('IpRanges'):
                     if ip_range.get('CidrIp') == '0.0.0.0/0':
-                        self.res.add('4.1',
-                                     "Security Group includes port 22 and has IP Range '0.0.0.0/0'", {
-                                         'group_id':    group_id
-                                     })
+                        self.res.add(benchmark, failure_message, {
+                            'group_id': group_id
+                        })
+
+    def check_4_1(self) -> None:
+        """
+        4.1 Ensure no security groups allow ingress from 0.0.0.0/0 to port 22 (Scored)
+        """
+        self.check_open_port('4.1', 22)
 
     def check_4_2(self) -> None:
         """
         4.2 Ensure no security groups allow ingress from 0.0.0.0/0 to port 3389 (Scored)
         """
-        client = self.session.client('ec2')
-        security_groups = client.describe_security_groups().get('SecurityGroups')
-        for group in security_groups:
-            group_id = group.get('GroupId')
-            ingress_rules = group.get('IpPermissions')
-            for rule in ingress_rules:
-
-                from_port = rule.get('FromPort')
-                if from_port is None:
-                    continue
-                to_port = rule.get('FromPort')
-                if to_port is None:
-                    continue
-
-                if not port_in_range(3389, from_port, to_port):
-                    continue
-
-                for ip_range in rule.get('IpRanges'):
-                    if ip_range.get('CidrIp') == '0.0.0.0/0':
-                        self.res.add('4.2',
-                                     "Security Group includes port 3389 and has IP Range '0.0.0.0/0'", {
-                                         'group_id':    group_id
-                                     })
+        self.check_open_port('4.2', 3389)
 
 
 def main() -> None:
