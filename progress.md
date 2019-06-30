@@ -23,7 +23,7 @@
 [ ] [ ] 1.22 Ensure IAM policies that allow full "*:*" administrative privileges are not created (Scored)
 
 2 Logging
-[ ] [ ] 2.1 Ensure CloudTrail is enabled in all regions (Scored)
+[x] [ ] 2.1 Ensure CloudTrail is enabled in all regions (Scored)
 [ ] [ ] 2.2 Ensure CloudTrail log file validation is enabled (Scored)
 [ ] [ ] 2.3 Ensure the S3 bucket used to store CloudTrail logs is not publicly accessible (Scored)
 [ ] [ ] 2.4 Ensure CloudTrail trails are integrated with CloudWatch Logs (Scored)

@@ -53,6 +53,39 @@ class CISChecker(object):
         self.session = boto3.session.Session(profile_name='default')
         self.res = Violations()
 
+    def check_2_1(self) -> None:
+        """
+        2.1 Ensure CloudTrail is enabled in all regions (Scored)
+        """
+        client = self.session.client('cloudtrail')
+        trails = client.describe_trails().get('trailList')
+        found_passing_selector = False
+        names = []
+
+        for trail in trails:
+            trail_name = trail.get('Name')
+            names.append(trail_name)
+            status = client.get_trail_status(Name=trail_name)
+            if status.get('IsLogging') is not True:
+                self.res.add('2.1', 'Trail must have logging enabled', {
+                    'trail_name': trail_name
+                })
+                continue
+            selectors = client.get_event_selectors(TrailName=trail_name).get('EventSelectors')
+
+            for selector in selectors:
+                include_management_events = selector.get('IncludeManagementEvents')
+                read_write_type = selector.get('ReadWriteType')
+                if include_management_events and read_write_type == 'All':
+                    found_passing_selector = True
+
+        if not found_passing_selector:
+            self.res.add('2.1',
+                         'Trail must have selector that includes management'
+                         ' event and read_write_type set to "All"', {
+                             'trail_names': names
+                         })
+
     def check_2_8(self) -> None:
         """
         2.8 Ensure rotation for customer created CMKs is enabled (Scored)
@@ -65,11 +98,11 @@ class CISChecker(object):
                 status = client.get_key_rotation_status(KeyId=key_id)
                 if not status.get('KeyRotationEnabled'):
                     self.res.add('2.8', 'KeyRotationEnabled is not set', {
-                        'key_id':    key_id
+                        'key_id': key_id
                     })
             except botocore.exceptions.ClientError as err:
                 self.res.add('2.8', str(err), {
-                    'key_id':    key_id
+                    'key_id': key_id
                 })
 
     def check_open_port(self, benchmark: str, target_port: int) -> None:
@@ -122,6 +155,7 @@ def main() -> None:
 
     checker = CISChecker()
 
+    checker.check_2_1()
     checker.check_2_8()
     checker.check_4_1()
     checker.check_4_2()
