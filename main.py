@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import json
 
 import boto3
@@ -49,8 +50,9 @@ class CISChecker(object):
     """
     Object with API to consolidate CIS Benchmarks
     """
-    def __init__(self, tests: list):
-        self.session = boto3.session.Session(profile_name='default')
+    def __init__(self, profile: str, tests: list):
+        self.profile = profile
+        self.session = boto3.session.Session(profile_name=self.profile)
         self.res = Violations()
         self.tests = tests
 
@@ -212,17 +214,34 @@ class CISChecker(object):
 
 def main() -> None:
 
-    checker = CISChecker(tests=[
-        '2.1',
-        '2.3',
-        '2.8',
-        '4.1',
-        '4.2'
-    ])
-    checker.run()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p',
+                        '--profiles',
+                        type=str,
+                        help='Comma-Separated string, listing profiles to be tested')
+    args = parser.parse_args()
 
-    # Print Results
-    print(json.dumps(checker.res.results))
+    if args.profiles:
+        profiles = args.profiles.split(',')
+    else:
+        profiles = ['default']
+
+    for profile in profiles:
+
+        print(f"Profile: '{profile}'")
+        checker = CISChecker(
+            profile=profile,
+            tests=[
+                '2.1',
+                '2.3',
+                '2.8',
+                '4.1',
+                '4.2'
+            ])
+        checker.run()
+
+        # Print Results
+        print(json.dumps(checker.res.results))
 
 
 if __name__ == '__main__':
