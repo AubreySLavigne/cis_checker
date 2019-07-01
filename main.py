@@ -111,34 +111,39 @@ class CISChecker(object):
         trails = cloudtrail.describe_trails().get('trailList')
         for trail in trails:
             bucket_name = trail.get('S3BucketName')
-            acl = s3.get_bucket_acl(Bucket=bucket_name)
-            grants = acl.get('Grants')
-            for grant in grants:
-                grantee = grant.get('Grantee')
-                if 'URI' in grantee:
-                    uri = grantee.get('URI')
-                    if uri == 'http://acs.amazonaws.com/groups/global/AllUsers':
-                        self.res.add('2.3', 'ACL for trail bucket should not have AllUsers principal', {
-                            'bucket_name': bucket_name,
-                            'trail_name':  trail.get('Name')
-                        })
-                    if uri == 'http://acs.amazonaws.com/groups/global/AuthenticatedUsers':
-                        self.res.add('2.3', 'ACL for trail bucket should not have AuthenticatedUsers principal', {
-                            'bucket_name': bucket_name,
-                            'trail_name':  trail.get('Name')
-                        })
+            try:
+                acl = s3.get_bucket_acl(Bucket=bucket_name)
+                grants = acl.get('Grants')
+                for grant in grants:
+                    grantee = grant.get('Grantee')
+                    if 'URI' in grantee:
+                        uri = grantee.get('URI')
+                        if uri == 'http://acs.amazonaws.com/groups/global/AllUsers':
+                            self.res.add('2.3', 'ACL for trail bucket should not have AllUsers principal', {
+                                'bucket_name': bucket_name,
+                                'trail_name':  trail.get('Name')
+                            })
+                        if uri == 'http://acs.amazonaws.com/groups/global/AuthenticatedUsers':
+                            self.res.add('2.3', 'ACL for trail bucket should not have AuthenticatedUsers principal', {
+                                'bucket_name': bucket_name,
+                                'trail_name':  trail.get('Name')
+                            })
 
-            policy = json.loads(s3.get_bucket_policy(Bucket=bucket_name).get('Policy'))
-            statements = policy.get('Statement')
-            for statement in statements:
-                if statement.get('Effect') != 'Allow':
-                    continue
-                principal = statement.get('Principal')
-                if principal == '*' or principal == '{"AWS":"*"}':
-                    self.res.add('2.3', 'Bucket Policy should not have wildcard principal', {
-                        'bucket_name': bucket_name,
-                        'principal':   principal
-                    })
+                policy = json.loads(s3.get_bucket_policy(Bucket=bucket_name).get('Policy'))
+                statements = policy.get('Statement')
+                for statement in statements:
+                    if statement.get('Effect') != 'Allow':
+                        continue
+                    principal = statement.get('Principal')
+                    if principal == '*' or principal == '{"AWS":"*"}':
+                        self.res.add('2.3', 'Bucket Policy should not have wildcard principal', {
+                            'bucket_name': bucket_name,
+                            'principal':   principal
+                        })
+            except botocore.exceptions.ClientError as err:
+                self.res.add('2.8', str(err), {
+                    'bucket_name': bucket_name,
+                })
 
     def check_2_8(self) -> None:
         """
