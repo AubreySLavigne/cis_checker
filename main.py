@@ -49,9 +49,25 @@ class CISChecker(object):
     """
     Object with API to consolidate CIS Benchmarks
     """
-    def __init__(self):
+    def __init__(self, tests: list):
         self.session = boto3.session.Session(profile_name='default')
         self.res = Violations()
+        self.tests = tests
+
+    def run(self) -> None:
+        """
+        Comment
+        """
+        if '2.1' in self.tests:
+            self.check_2_1()
+        if '2.3' in self.tests:
+            self.check_2_3()
+        if '2.8' in self.tests:
+            self.check_2_8()
+        if '4.1' in self.tests:
+            self.check_4_1()
+        if '4.2' in self.tests:
+            self.check_4_2()
 
     def check_2_1(self) -> None:
         """
@@ -191,13 +207,14 @@ class CISChecker(object):
 
 def main() -> None:
 
-    checker = CISChecker()
-
-    checker.check_2_1()
-    checker.check_2_3()
-    checker.check_2_8()
-    checker.check_4_1()
-    checker.check_4_2()
+    checker = CISChecker(tests=[
+        '2.1',
+        '2.3',
+        '2.8',
+        '4.1',
+        '4.2'
+    ])
+    checker.run()
 
     # Print Results
     print(json.dumps(checker.res.results))
