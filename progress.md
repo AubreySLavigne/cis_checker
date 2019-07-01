@@ -28,7 +28,7 @@
 [x] [ ] 2.3 Ensure the S3 bucket used to store CloudTrail logs is not publicly accessible (Scored)
 [ ] [ ] 2.4 Ensure CloudTrail trails are integrated with CloudWatch Logs (Scored)
 [ ] [ ] 2.5 Ensure AWS Config is enabled in all regions (Scored)
-[ ] [ ] 2.6 Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket (Scored)
+[x] [ ] 2.6 Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket (Scored)
 [ ] [ ] 2.7 Ensure CloudTrail logs are encrypted at rest using KMS CMKs (Scored)
 [x] [ ] 2.8 Ensure rotation for customer created CMKs is enabled (Scored)
 [ ] [ ] 2.9 Ensure VPC flow logging is enabled in all VPCs (Scored)

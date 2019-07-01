@@ -64,6 +64,8 @@ class CISChecker(object):
             self.check_2_1()
         if '2.3' in self.tests:
             self.check_2_3()
+        if '2.6' in self.tests:
+            self.check_2_6()
         if '2.8' in self.tests:
             self.check_2_8()
         if '4.1' in self.tests:
@@ -143,8 +145,32 @@ class CISChecker(object):
                             'principal':   principal
                         })
             except botocore.exceptions.ClientError as err:
-                self.res.add('2.8', str(err), {
+                self.res.add('2.3', str(err), {
                     'bucket_name': bucket_name,
+                })
+
+    def check_2_6(self) -> None:
+        """
+        2.6 Ensure S3 bucket access logging is enabled on the CloudTrail S3
+        bucket (Scored)
+        """
+        cloudtrail = self.session.client('cloudtrail')
+        trails = cloudtrail.describe_trails().get('trailList')
+        s3 = self.session.client('s3')
+        for trail in trails:
+            bucket_name = trail.get('S3BucketName')
+            trail_name = trail.get('Name')
+            try:
+                logging = s3.get_bucket_logging(Bucket=bucket_name).get('LoggingEnabled')
+                if not logging.get('TargetBucket') or not logging.get('TargetPrefix'):
+                    self.res.add('2.6', 'Trail Bucket must have logging enabled', {
+                        'bucket_name': bucket_name,
+                        'trail_name':  trail_name
+                    })
+            except botocore.exceptions.ClientError as err:
+                self.res.add('2.6', str(err), {
+                    'bucket_name': bucket_name,
+                    'trail_name':  trail_name
                 })
 
     def check_2_8(self) -> None:
@@ -234,6 +260,7 @@ def main() -> None:
             tests=[
                 '2.1',
                 '2.3',
+                '2.6',
                 '2.8',
                 '4.1',
                 '4.2'
