@@ -25,7 +25,7 @@
 2 Logging
 [x] [ ] 2.1 Ensure CloudTrail is enabled in all regions (Scored)
 [ ] [ ] 2.2 Ensure CloudTrail log file validation is enabled (Scored)
-[ ] [ ] 2.3 Ensure the S3 bucket used to store CloudTrail logs is not publicly accessible (Scored)
+[x] [ ] 2.3 Ensure the S3 bucket used to store CloudTrail logs is not publicly accessible (Scored)
 [ ] [ ] 2.4 Ensure CloudTrail trails are integrated with CloudWatch Logs (Scored)
 [ ] [ ] 2.5 Ensure AWS Config is enabled in all regions (Scored)
 [ ] [ ] 2.6 Ensure S3 bucket access logging is enabled on the CloudTrail S3 bucket (Scored)
