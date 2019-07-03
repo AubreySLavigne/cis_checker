@@ -58,8 +58,22 @@ class CISChecker(object):
 
     def run(self) -> None:
         """
-        Comment
+        Run the Benchmark Suite
         """
+        if '1.5' in self.tests:
+            self.check_1_5()
+        if '1.6' in self.tests:
+            self.check_1_6()
+        if '1.7' in self.tests:
+            self.check_1_7()
+        if '1.8' in self.tests:
+            self.check_1_8()
+        if '1.9' in self.tests:
+            self.check_1_9()
+        if '1.10' in self.tests:
+            self.check_1_10()
+        if '1.11' in self.tests:
+            self.check_1_11()
         if '2.1' in self.tests:
             self.check_2_1()
         if '2.3' in self.tests:
@@ -72,6 +86,88 @@ class CISChecker(object):
             self.check_4_1()
         if '4.2' in self.tests:
             self.check_4_2()
+
+    def check_1_5(self) -> None:
+        """
+        1.5 Ensure IAM password policy requires at least one uppercase letter (Scored)
+        """
+        client = self.session.client('iam')
+        policy = client.get_account_password_policy().get('PasswordPolicy')
+        uppercase_required = policy.get('RequireUppercaseCharacters')
+        if not uppercase_required:
+            self.res.add('1.5', 'Password Policy must require uppercase letters', {})
+
+    def check_1_6(self) -> None:
+        """
+        1.6 Ensure IAM password policy require at least one lowercase letter (Scored)
+        """
+        client = self.session.client('iam')
+        policy = client.get_account_password_policy().get('PasswordPolicy')
+        lowercase_required = policy.get('RequireLowercaseCharacters')
+        if not lowercase_required:
+            self.res.add('1.6', 'Password Policy must require lowercase letters', {})
+
+    def check_1_7(self) -> None:
+        """
+        1.7 Ensure IAM password policy require at least one symbol (Scored)
+        """
+        client = self.session.client('iam')
+        policy = client.get_account_password_policy().get('PasswordPolicy')
+        symbols_required = policy.get('RequireSymbols')
+        if not symbols_required:
+            self.res.add('1.7', 'Password Policy must require symbols', {})
+
+    def check_1_8(self) -> None:
+        """
+        1.8 Ensure IAM password policy require at least one number (Scored)
+        """
+        client = self.session.client('iam')
+        policy = client.get_account_password_policy().get('PasswordPolicy')
+        numbers_required = policy.get('RequireNumbers')
+        if not numbers_required:
+            self.res.add('1.8', 'Password Policy must require numbers', {})
+
+    def check_1_9(self) -> None:
+        """
+        1.9 Ensure IAM password policy requires minimum length of 14 or greater (Scored)
+        """
+        client = self.session.client('iam')
+        policy = client.get_account_password_policy().get('PasswordPolicy')
+        minimum_password_length = policy.get('MinimumPasswordLength')
+        if minimum_password_length < 14:
+            self.res.add(
+                '1.9',
+                'Password Policy must require passwords with length at least 14',
+                {'current_value': minimum_password_length}
+            )
+
+    def check_1_10(self) -> None:
+        """
+        1.10 Ensure IAM password policy prevents password reuse (Scored)
+        """
+        client = self.session.client('iam')
+        policy = client.get_account_password_policy().get('PasswordPolicy')
+        passwords_to_remember = policy.get('PasswordReusePrevention')
+        if passwords_to_remember != 24:
+            self.res.add(
+                '1.10',
+                'Password Policy must require passwords are not reused',
+                {'current_value': passwords_to_remember}
+            )
+
+    def check_1_11(self) -> None:
+        """
+        1.11 Ensure IAM password policy expires passwords within 90 days or less (Scored)
+        """
+        client = self.session.client('iam')
+        policy = client.get_account_password_policy().get('PasswordPolicy')
+        max_password_age = policy.get('MaxPasswordAge')
+        if max_password_age > 90:
+            self.res.add(
+                '1.11',
+                'Password Policy must require password reset in 90 days or less',
+                {'current_value': max_password_age}
+            )
 
     def check_2_1(self) -> None:
         """
@@ -259,6 +355,13 @@ def main() -> None:
         checker = CISChecker(
             profile=profile,
             tests=[
+                '1.5',
+                '1.6',
+                '1.7',
+                '1.8',
+                '1.9',
+                '1.10',
+                '1.11',
                 '2.1',
                 '2.3',
                 '2.6',
