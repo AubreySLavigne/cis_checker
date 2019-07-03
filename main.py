@@ -252,9 +252,10 @@ def main() -> None:
     else:
         profiles = ['default']
 
+    results = {}
+
     for profile in profiles:
 
-        print(f"Profile: '{profile}'")
         checker = CISChecker(
             profile=profile,
             tests=[
@@ -267,8 +268,10 @@ def main() -> None:
             ])
         checker.run()
 
-        # Print Results
-        print(json.dumps(checker.res.results))
+        results[profile] = checker.res.results
+
+    # Print Results
+    print(json.dumps(results))
 
 
 if __name__ == '__main__':
