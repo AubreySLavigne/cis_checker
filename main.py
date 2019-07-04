@@ -74,6 +74,8 @@ class CISChecker(object):
             self.check_1_10()
         if '1.11' in self.tests:
             self.check_1_11()
+        if '1.13' in self.tests:
+            self.check_1_13()
         if '2.1' in self.tests:
             self.check_2_1()
         if '2.3' in self.tests:
@@ -168,6 +170,15 @@ class CISChecker(object):
                 'Password Policy must require password reset in 90 days or less',
                 {'current_value': max_password_age}
             )
+
+    def check_1_13(self) -> None:
+        """
+        1.13 Ensure MFA is enabled for the "root" account (Scored)
+        """
+        client = self.session.client('iam')
+        summary = client.get_account_summary().get('SummaryMap')
+        if summary.get('AccountMFAEnabled') != 1:
+            self.res.add('1.13', 'Account must have MFA enabled', {})
 
     def check_2_1(self) -> None:
         """
@@ -362,6 +373,7 @@ def main() -> None:
                 '1.9',
                 '1.10',
                 '1.11',
+                '1.13',
                 '2.1',
                 '2.3',
                 '2.6',
