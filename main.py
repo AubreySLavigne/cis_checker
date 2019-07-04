@@ -351,13 +351,11 @@ def main() -> None:
     parser.add_argument('-p',
                         '--profiles',
                         type=str,
-                        help='Comma-Separated string, listing profiles to be tested')
+                        default='default',
+                        help="Comma-Separated string, listing profiles to be tested. (Default: 'default')")
     args = parser.parse_args()
 
-    if args.profiles:
-        profiles = args.profiles.split(',')
-    else:
-        profiles = ['default']
+    profiles = args.profiles.split(',')
 
     results = {}
 
